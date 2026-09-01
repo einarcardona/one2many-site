@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if page.title %}{{ page.title }} | One2Many AB{% else %}One2Many AB Blogg{% endif %}</title>
+<meta name="description" content="{{ page.excerpt | default: site.description | strip_html | truncate: 160 }}">
+<link rel="icon" type="image/png" href="/images/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --mint:#A8E0D8; --turq:#7FD4CE; --sand:#E8D5B0; --petrol:#2B6E78;
+    --petrol-deep:#1f535b; --cream:#FAF6EF; --ink:#234c52; --muted:#496769;
+    --card:#ffffff; --shadow-card:0 26px 60px -34px rgba(43,110,120,.55);
+    --radius:22px; --maxw:760px;
+    --display:'Bricolage Grotesque',system-ui,sans-serif;
+    --body:'Hanken Grotesk',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--body);color:var(--ink);background:var(--cream);line-height:1.65;-webkit-font-smoothing:antialiased}
+  a{color:var(--petrol)}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  header.site-nav{display:flex;align-items:center;justify-content:space-between;padding:22px 24px;max-width:var(--maxw);margin:0 auto}
+  .brand{font-family:var(--display);font-weight:700;font-size:1.1rem;color:var(--petrol);text-decoration:none}
+  .brand b{color:var(--turq)}
+  .back-link{font-family:var(--display);font-weight:600;font-size:.92rem;color:var(--muted);text-decoration:none}
+  .back-link:hover{color:var(--petrol)}
+  main{padding:20px 0 80px}
+  h1{font-family:var(--display);font-weight:800;font-size:clamp(1.8rem,4vw,2.6rem);line-height:1.1;color:var(--petrol-deep);letter-spacing:-.02em;margin-bottom:10px}
+  h2{font-family:var(--display);font-weight:700;color:var(--petrol-deep);margin:32px 0 14px;font-size:1.4rem}
+  p{margin-bottom:18px;font-size:1.05rem}
+  ul,ol{margin:0 0 18px 22px}
+  li{margin-bottom:8px}
+  code{background:rgba(127,212,206,.18);padding:2px 6px;border-radius:6px;font-size:.9em}
+  pre{background:var(--petrol-deep);color:#fff;padding:18px;border-radius:14px;overflow-x:auto;margin-bottom:18px}
+  pre code{background:none;padding:0}
+  blockquote{border-left:3px solid var(--turq);padding-left:16px;color:var(--muted);margin-bottom:18px}
+  img{max-width:100%;border-radius:var(--radius)}
+  .post-meta{color:var(--muted);font-size:.92rem;margin-bottom:28px}
+  footer{border-top:1px solid rgba(43,110,120,.1);padding:28px 24px;text-align:center;color:var(--muted);font-size:.9rem}
+</style>
+</head>
+<body>
+<header class="site-nav">
+  <a href="/" class="brand">One<b>2</b>Many AB</a>
+  <a href="/blogg/" class="back-link">Blogg</a>
+</header>
+<main class="wrap">
+{{ content }}
+</main>
+<footer>© {{ 'now' | date: "%Y" }} One2Many AB · Stockholm, Sverige</footer>
+</body>
+</html>

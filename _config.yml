@@ -1,0 +1,12 @@
+title: One2Many AB
+description: "Konsulttjänster inom IT och affärssystem med fokus på Dynamics 365 SCM, logistik, produktion och WMS."
+url: "https://one2many.se"
+lang: sv
+
+markdown: kramdown
+permalink: /blogg/:year/:month/:day/:title/
+
+# index.html is a hand-built static page — don't let Jekyll touch it
+exclude:
+  - REVIEW.md
+  - README.md

@@ -87,6 +87,8 @@
   .brand{display:flex;align-items:center;gap:11px;font-family:var(--display);font-weight:700;font-size:1.18rem;letter-spacing:-.01em;color:var(--petrol)}
   .brand img{width:34px;height:34px;border-radius:50%;box-shadow:0 6px 14px -6px rgba(43,110,120,.6)}
   .brand b{color:var(--turq)}
+  .nav-blog-link{font-family:var(--display);font-weight:600;font-size:.92rem;color:var(--petrol);text-decoration:none;padding:6px 2px;border-bottom:2px solid transparent;transition:.25s}
+  .nav-blog-link:hover{border-color:var(--turq)}
   .lang{
     display:inline-flex;background:rgba(255,255,255,.7);border:1px solid rgba(43,110,120,.16);
     border-radius:999px;padding:4px;backdrop-filter:blur(8px);box-shadow:var(--shadow-soft);
@@ -238,9 +240,12 @@
     <img src="images/logo.webp" alt="One2Many logotyp">
     <span class="full">One<b>2</b>Many <span style="font-weight:500;color:var(--muted);font-size:.8em">AB</span></span>
   </a>
-  <div class="lang" role="group" aria-label="Language">
-    <button id="sv" class="active" aria-pressed="true" onclick="setLang('sv')">SV</button>
-    <button id="en" aria-pressed="false" onclick="setLang('en')">EN</button>
+  <div style="display:flex;align-items:center;gap:18px">
+    <a href="/blogg/" class="nav-blog-link" data-i18n="navBlog">Blogg</a>
+    <div class="lang" role="group" aria-label="Language">
+      <button id="sv" class="active" aria-pressed="true" onclick="setLang('sv')">SV</button>
+      <button id="en" aria-pressed="false" onclick="setLang('en')">EN</button>
+    </div>
   </div>
 </header>
 
@@ -416,6 +421,7 @@ const I18N = {
     h1a:"En partner.", h1b:"Många möjligheter.",
     lead:"Jag hjälper företag att effektivisera lager, produktion och inköp i Microsoft Dynamics 365 Supply Chain och Power Platform — från idé till färdig lösning som verkligen används.",
     skip:"Hoppa till innehåll",
+    navBlog:"Blogg",
     cta1:"Boka ett samtal", cta2:"Se tjänster",
     aboutKicker:"Om One2Many", aboutH:"En liten byrå med stort engagemang.",
     aboutP1:"One2Many AB är ett svenskt IT-konsultbolag grundat 2025. Bakom namnet står Einar Cardona — ERP-specialist med över tio års erfarenhet av Microsoft Dynamics AX och Dynamics 365 SCM, med starkt fokus på logistik, produktion och lagerhantering (WMS).",
@@ -444,6 +450,7 @@ const I18N = {
     h1a:"One partner.", h1b:"Many possibilities.",
     lead:"I help companies run leaner across warehousing, production and purchasing in Microsoft Dynamics 365 Supply Chain and the Power Platform — from idea to a finished solution people actually use.",
     skip:"Skip to content",
+    navBlog:"Blog",
     cta1:"Book a call", cta2:"View services",
     aboutKicker:"About One2Many", aboutH:"A small firm with big commitment.",
     aboutP1:"One2Many AB is a Swedish IT consultancy founded in 2025. Behind the name is Einar Cardona — an ERP specialist with over a decade of experience in Microsoft Dynamics AX and Dynamics 365 SCM, with a strong focus on logistics, manufacturing and warehouse operations (WMS).",

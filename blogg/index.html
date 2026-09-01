@@ -1,0 +1,15 @@
+---
+layout: default
+title: Blogg
+permalink: /blogg/
+---
+<h1>Blogg</h1>
+<p class="post-meta">Tankar och lärdomar om Dynamics 365 SCM, ERP-projekt och Power Platform.</p>
+
+{% for post in site.posts %}
+  <h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
+  <p class="post-meta">{{ post.date | date: "%-d %B %Y" }}</p>
+  <p>{{ post.excerpt | strip_html | truncate: 200 }}</p>
+{% else %}
+  <p>Första inlägget kommer snart.</p>
+{% endfor %}
