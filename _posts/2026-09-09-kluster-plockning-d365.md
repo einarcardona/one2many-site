@@ -1,41 +1,38 @@
 ---
 layout: post
-title: "Klusterplockning i D365 SCM: så påverkar du inte den befintliga plockprocessen"
+title: "Cluster picking in D365 SCM — and the two gotchas that got me"
 ---
 
-Klusterplockning gör det möjligt att plocka till flera order samtidigt från samma lagerplats — och kan spara betydande tid i en högvolymsmiljö. Men i ett nyligen genomfört WMS-projekt ville kunden bara aktivera klusterplockning för en avgränsad grupp artiklar, utan att på något sätt ändra hur den vanliga, manuella plockningen fungerar för allt annat.
+Had an interesting one this week: a client wanted cluster picking turned on for a specific subset of items, without touching how the rest of picking works. Sounds simple. It mostly was — except for two things that didn't show up until I actually tested it.
 
-Så här löste vi det — och två saker som var mindre uppenbara än de först verkade.
+Quick context if you haven't touched cluster picking before: it lets a picker satisfy multiple orders from one visit to a location, instead of walking back and forth separately for each one. Big time saver at volume. But the client only wanted it for a small, specific set of items — everything else had to keep working exactly like today, manual pack-station selection and all.
 
-<!-- Skärmdump-förslag: enkel tvådelad bild — "Order släpps" som förgrenar sig i "Klustermall" respektive "Standardmall" -->
+<!-- Screenshot idea: simple two-box flow diagram — "Order released" branching into "Cluster template" and "Standard template" -->
 
-## Separat arbetsmall, inte en gemensam
+**The setup**
 
-Istället för att bygga om den befintliga arbetsmallen delade vi upp flödet i två separata arbetsmallar, åtskilda med en egen arbetsklassificering:
+Instead of modifying the existing work template, I split the flow into two: a new work template for cluster-eligible orders, sequenced ahead of the standard one, with its own work classification. The existing template stays completely untouched and just catches everything else.
 
-- En ny arbetsmall för klusterberättigade order, med lägre sekvensnummer (utvärderas först) och en egen arbetsklass.
-- Den befintliga arbetsmallen förblir helt orörd och fångar upp allt annat.
+For the put location, I used a directive code on the cluster template's put line, pointing at a new location directive. That's the actual mechanism worth knowing — a directive code makes D365 look up the location directive by code instead of by sequence, so you get a deterministic put location for the cluster flow without disturbing the sequence-based search everything else still uses. Not a workaround, just the documented way to do it.
 
-Ställplatsen (put) för klusterordern styrs via en dirigeringskod på arbetsmallens ställ-rad, kopplad till en ny platsdirigering. En dirigeringskod gör att D365 söker platsdirigeringar efter kod istället för efter sekvensnummer — det är standardmekaniken, inte en workaround. Resultatet: klusterorder får en förutsägbar, systemresolverad ställplats, medan allt annat behåller dagens manuella val av packstation helt opåverkat.
+**Gotcha #1 — mixed orders split into two work IDs**
 
-## Fallgrop 1: en order med blandade artiklar
+My first version of the eligibility query filtered directly on item number, at the top level of the work template's header query. Worked fine — right up until I tested an order with one eligible item and one non-eligible item on it. Instead of one work ID covering both lines, I got two: the eligible line went to the cluster template, the other line fell through to standard.
 
-Den första versionen av urvalsfrågan (header query) filtrerade direkt på artikelnummer på arbetsmallens toppnivå. Det fungerade perfekt — så länge *alla* rader på en order var klusterberättigade. Men en order med en blandning av berättigade och icke-berättigade artiklar splittrades i **två separata arbeten**: den berättigade raden gick till klustermallen, resten föll igenom till standardmallen.
+Turns out the header query evaluates per line, not per order — so a plain filter on the line's own item can never see its sibling lines on the same order.
 
-Orsaken: urvalsfrågan utvärderas per rad, inte per order. Ett enkelt filter på radens egen artikel kan aldrig fånga upp systerraderna på samma order.
+<!-- Screenshot idea: the work template's Edit query dialog, Joins tab, showing the join tree -->
 
-<!-- Skärmdump-förslag: Edit query-dialogen på arbetsmallen, Joins-fliken, med kopplingsträdet synligt -->
+Fixed it with an Exists join instead: join a second instance of the order lines through the order header, put the item condition on that joined instance, and set the join mode to Exists (not the default Inner Join). Now the question the query asks is "does this order have any eligible line" instead of "is this specific line eligible" — so every line on a qualifying order routes together, no matter which line actually triggered the match.
 
-Lösningen var att byta frågan mot en **Exists-join**: koppla en andra instans av orderraderna via ordertabellen, med artikelvillkoret på den kopplade raden — och med kopplingsläget satt till *Exists*, inte standardvalet *Inner Join*. Frågan blir då "finns det **någon** rad på ordern med en berättigad artikel", inte "är just den här radens artikel berättigad". Varje rad på en kvalificerande order matchar då mallen, oavsett vilken specifik rad som utlöste matchningen.
+**Gotcha #2 — the cluster won't start unless it's full**
 
-## Fallgrop 2: klustret startar inte om det inte är fullt
+Separate issue, found once I got to testing the actual cluster creation. The cluster profile has a setting, Activate positions, that's on by default — and with it on, the system won't create a cluster unless every configured position has work available. Fewer eligible orders than positions? You get "Not enough work can be found for cluster," even when there's plenty of real work sitting there for the positions that *are* available.
 
-Klusterprofilen har en inställning, *Activate positions*, som är påslagen som standard. Med den påslagen kräver systemet att **alla** konfigurerade positioner har tillgängligt arbete innan ett kluster ens skapas — finns det färre kvalificerande order än antalet positioner får du felmeddelandet "Not enough work can be found for cluster", även om det finns gott om arbete för de positioner som faktiskt är tillgängliga.
+Fix: turn Activate positions off. It's documented, but easy to miss if you only skim the field description — reading it, you'd assume it's a soft cap, not a hard minimum.
 
-Lösningen är att stänga av *Activate positions*. Det är en dokumenterad, känd begränsning — men lätt att missa om man bara läser den översiktliga beskrivningen av fältet.
+**Takeaway**
 
-## Slutsats
+None of this needed custom code — it's all standard work template, location directive, and cluster profile configuration. But routing a subset of items into cluster picking without disturbing anything else takes actually understanding where each decision lives in the config, not just following a checklist. Both gotchas above only showed up in real testing, not in the setup steps — worth remembering before calling something like this "done."
 
-Inget av det här kräver anpassad kod — allt byggs med standardmekaniken för arbetsmallar, platsdirigeringar och klusterprofiler. Men klusterplockning som bara ska gälla en delmängd av artiklarna, utan att röra resten av flödet, kräver att man förstår exakt *var* i konfigurationen varje beslut faktiskt fattas — annars är det lätt att antingen störa den befintliga plockningen eller hamna i en av de här två fallgroparna.
-
-Har du ett liknande behov i din WMS-miljö? Hör gärna av dig.
+Got a similar problem in your own WMS setup? Get in touch.
