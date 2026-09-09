@@ -25,11 +25,17 @@ Turns out the header query evaluates per line, not per order — so a plain filt
 
 Fixed it with an Exists join instead: join a second instance of the order lines through the order header, put the item condition on that joined instance, and set the join mode to Exists (not the default Inner Join). Now the question the query asks is "does this order have any eligible line" instead of "is this specific line eligible" — so every line on a qualifying order routes together, no matter which line actually triggered the match.
 
-**Gotcha #2 — the cluster won't start unless it's full**
+**Gotcha #2 — reusable totes instead of throwaway position IDs**
 
-Separate issue, found once I got to testing the actual cluster creation. The cluster profile has a setting, Activate positions, that's on by default — and with it on, the system won't create a cluster unless every configured position has work available. Fewer eligible orders than positions? You get "Not enough work can be found for cluster," even when there's plenty of real work sitting there for the positions that *are* available.
+This one wasn't really a bug I hit, more a "wait, we can do better than this" moment once I got to testing the actual mobile flow. The physical setup uses totes on a cart for the cluster — and by default, the system auto-generates a new position ID for the cluster every single time. Fine, but it means the tote itself isn't really "known" to the system as anything — it's just wherever position 1, 2, 3 happens to land that run.
 
-Fix: turn Activate positions off. It's documented, but easy to miss if you only skim the field description — reading it, you'd assume it's a soft cap, not a hard minimum.
+What we actually wanted: a fixed ID on each tote, scanned the same way every time, reusable run after run — and ideally scannable again at packing to pull up the right shipment, no separate lookup step.
+
+Turned out to be two settings, neither of which reads as connected to this if you're just skimming the field descriptions: **Activate positions** off on the cluster profile, and **Generate license plate** off on the mobile device menu item. With both off, the system stops auto-assigning positions and instead prompts the picker to scan a target license plate for each cluster position — so a fixed, physical tote ID becomes the actual position identifier, not a disposable system-generated one. (Small bonus: turning off Activate positions also means the cluster doesn't need every position filled to start — useful on its own if demand doesn't always exactly match your cart size.)
+
+The nice part only became obvious once I ran the full flow end to end: the same tote ID gets scanned again at the packing step to bring up the shipment to pack. Finish packing, tote's empty, it goes straight back into rotation for the next cluster. Picking and packing end up sharing one identifier instead of two disconnected systems.
+
+<!-- Screenshot idea: the handheld's "scan target license plate" prompt during cluster creation — captures the moment the fixed tote ID replaces the auto-generated position, which is the whole point of this section. A second option, if you want two images here: the packing screen right after scanning the tote ID, showing the shipment it pulled up — that's the "payoff" shot. Worth a quick check before posting that neither screenshot shows a real order/cluster/work ID you don't want public. -->
 
 **Takeaway**
 
